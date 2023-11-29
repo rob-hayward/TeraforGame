@@ -1,10 +1,12 @@
+# game_window.py
 import arcade
 import math
 import random
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, SUN_SIZE, ORBIT_RADIUS, PARTICLE_EMISSION_MIN_TIME, PARTICLE_EMISSION_MAX_TIME
 from sun import Sun
-from particles import LightGreyParticle
-from collision_handling import handle_collision
+from particles import LightGreyParticle, FireParticle
+from collision_handling import update_particles, handle_collision
+
 
 class MyGame(arcade.Window):
     def __init__(self, title):
@@ -41,28 +43,13 @@ class MyGame(arcade.Window):
             new_particle = self.sun.emit_particle()
             self.particles.append(new_particle)
 
-        # Collision detection and handling
+        # Update and handle FireParticle separately
         for particle in self.particles:
-            if particle.speed > 0:
-                # Predict the next position of the particle
-                next_x = particle.center_x - particle.speed * math.cos(particle.angle)
-                next_y = particle.center_y - particle.speed * math.sin(particle.angle)
-
-                # Temporarily update the particle's position
-                particle.center_x = next_x
-                particle.center_y = next_y
-
-                # Check for collision at this new position
-                hit_list = arcade.check_for_collision_with_list(particle, self.particles)
-                for hit_particle in hit_list:
-                    if hit_particle != particle:
-                        handle_collision(particle, hit_particle)
-                        break  # Stop checking after the first collision
-
-                # Revert the position if no collision occurred
-                if not hit_list:
-                    particle.center_x -= particle.speed * math.cos(particle.angle)
-                    particle.center_y -= particle.speed * math.sin(particle.angle)
+            if isinstance(particle, FireParticle):
+                particle.update()
+            else:
+                # Update particle positions and handle collisions/explosions
+                update_particles(self.particles, delta_time, self.sun.center_x, self.sun.center_y)
 
     def on_key_press(self, key, modifiers):
         if key == arcade.key.ESCAPE:

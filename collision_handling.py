@@ -1,143 +1,150 @@
 # collision_handling.py
+import math
 import arcade
-from constants import COLOR_LIGHT_GREY
-from particles import LightGreyParticle, DarkGreyParticle, PositiveParticle, NegativeParticle
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from particles import LightGreyParticle, DarkGreyParticle, PositiveParticle, NegativeParticle, FireParticle
+
+
+def handle_repulsion(particle1, particle2, particles, sun_center_x, sun_center_y):
+    fire_particle = FireParticle(sun_center_x, sun_center_y)
+    fire_particle.center_x = (particle1.center_x + particle2.center_x) / 2
+    fire_particle.center_y = (particle1.center_y + particle2.center_y) / 2
+
+    particles.append(fire_particle)
+
+    # Remove the original particles
+    particles.remove(particle1)
+    particles.remove(particle2)
+    if isinstance(particle1, PositiveParticle):
+        PositiveParticle.remove_instance(particle1)
+    if isinstance(particle2, PositiveParticle):
+        PositiveParticle.remove_instance(particle2)
+    if isinstance(particle1, NegativeParticle):
+        NegativeParticle.remove_instance(particle1)
+    if isinstance(particle2, NegativeParticle):
+        NegativeParticle.remove_instance(particle2)
+
+
+def update_particles(particles, delta_time, sun_center_x, sun_center_y):
+    handled_particles = set()
+    for particle in particles:
+        particle.update()
+
+        # Check for adjacent positive or negative particles
+        check_for_adjacent_charged_particles(particles, sun_center_x, sun_center_y, handled_particles)
+
+        # Collision detection and handling
+        hit_list = arcade.check_for_collision_with_list(particle, particles)
+        for hit_particle in hit_list:
+            if hit_particle != particle and hit_particle not in handled_particles:
+                # Handle standard collision
+                handle_collision(particle, hit_particle)
+                handled_particles.update([particle, hit_particle])
+                break  # Stop checking after the first collision
+
+
+def check_for_adjacent_charged_particles(particles, sun_center_x, sun_center_y, handled_particles):
+    # Check for similarly charged particles
+    for particle1 in PositiveParticle.instances:
+        if particle1 in handled_particles:
+            continue
+        for particle2 in PositiveParticle.instances:
+            if particle2 in handled_particles or particle1 is particle2:
+                continue
+            if check_proximity(particle1, particle2):
+                handle_repulsion(particle1, particle2, particles, sun_center_x, sun_center_y)
+                handled_particles.update([particle1, particle2])
+                break
+
+    for particle1 in NegativeParticle.instances:
+        if particle1 in handled_particles:
+            continue
+        for particle2 in NegativeParticle.instances:
+            if particle2 in handled_particles or particle1 is particle2:
+                continue
+            if check_proximity(particle1, particle2):
+                handle_repulsion(particle1, particle2, particles, sun_center_x, sun_center_y)
+                handled_particles.update([particle1, particle2])
+                break
+
+    # Check for oppositely charged particles
+    for particle1 in PositiveParticle.instances:
+        if particle1 in handled_particles:
+            continue
+        for particle2 in NegativeParticle.instances:
+            if particle2 in handled_particles or particle1 is particle2:
+                continue
+            if check_proximity(particle1, particle2):
+                handle_attraction(particle1, particle2, particles)
+                handled_particles.update([particle1, particle2])
+                break
+
+
+def check_proximity(particle1, particle2):
+    distance = math.sqrt((particle1.center_x - particle2.center_x) ** 2 +
+                         (particle1.center_y - particle2.center_y) ** 2)
+    return distance <= 21  # Adjacent particles
+
+
+def handle_attraction(particle1, particle2, particles):
+    # Create two light grey particles
+    light_grey_particle1 = LightGreyParticle()
+    light_grey_particle2 = LightGreyParticle()
+
+    # Set their positions
+    light_grey_particle1.center_x, light_grey_particle1.center_y = particle1.center_x, particle1.center_y
+    light_grey_particle2.center_x, light_grey_particle2.center_y = particle2.center_x, particle2.center_y
+
+    # Stop the movement of both particles
+    particle1.speed = 0
+    particle2.speed = 0
+
+    # Add new particles to the list
+    particles.append(light_grey_particle1)
+    particles.append(light_grey_particle2)
+
+    # Remove the original particles
+    particles.remove(particle1)
+    particles.remove(particle2)
+    PositiveParticle.remove_instance(particle1)
+    NegativeParticle.remove_instance(particle2)
 
 
 def handle_collision(particle1, particle2):
+    if isinstance(particle1, FireParticle) or isinstance(particle2, FireParticle):
+        return
+
     """
-    Align particles upon collision, considering different sizes.
+    Align particles upon collision
     """
     # Determine the direction of collision
     x_diff = particle1.center_x - particle2.center_x
     y_diff = particle1.center_y - particle2.center_y
 
-    # Check if either particle is a smaller particle (positive or negative)
-    smaller_particle = None
-    if isinstance(particle1, (PositiveParticle, NegativeParticle)):
-        smaller_particle = particle1
-    elif isinstance(particle2, (PositiveParticle, NegativeParticle)):
-        smaller_particle = particle2
+    # Reset the angle of both particles
+    particle1.angle = 0
+    particle2.angle = 0
 
-    if smaller_particle:
-        # Align smaller particle based on the collision with a larger particle
-        align_smaller_particle(smaller_particle, particle1 if smaller_particle != particle1 else particle2, x_diff, y_diff)
-    else:
-        # Standard alignment for equal-sized particles
-        standard_alignment(particle1, particle2, x_diff, y_diff)
+    # Align the particles
+    standard_alignment(particle1, particle2, x_diff, y_diff)
 
     # Stop the movement of both particles
     particle1.speed = 0
     particle2.speed = 0
 
 
-def align_smaller_particle(smaller_particle, other_particle, x_diff, y_diff):
-    """
-    Align a smaller particle (either positive or negative) with a larger particle.
-    """
-    x_diff = smaller_particle.center_x - other_particle.center_x
-    y_diff = smaller_particle.center_y - other_particle.center_y
-
-    if abs(x_diff) > abs(y_diff):
-        # Horizontal collision
-        if x_diff > 10 and y_diff > 0:
-            if smaller_particle.speed > 0:
-                # smaller_particle is moving left and is above other_particle center
-                smaller_particle.left = other_particle.right
-                smaller_particle.top = other_particle.top
-            else:
-                # smaller_particle is stationary on left of and above other_particle center
-                other_particle.right = smaller_particle.left
-                other_particle.top = smaller_particle.top
-
-        elif x_diff > 10 and y_diff < 0:
-            if smaller_particle.speed > 0:
-                # smaller_particle is moving left and is below other_particle center
-                smaller_particle.left = other_particle.right
-                smaller_particle.bottom = other_particle.bottom
-            else:
-                # smaller_particle stationary on left of and below other_particle center
-                other_particle.right = smaller_particle.left
-                other_particle.bottom = smaller_particle.bottom
-
-        elif x_diff < 10 and y_diff > 0:
-            if smaller_particle.speed > 0:
-                # smaller_particle is moving right and is above other_particle center
-                smaller_particle.right = other_particle.left
-                smaller_particle.top = other_particle.top
-            else:
-                # smaller_particle is stationary on right of and above other_particle center
-                other_particle.left = smaller_particle.right
-                other_particle.top = smaller_particle.top
-
-        else:
-            if smaller_particle.speed > 0:
-                # smaller_particle is moving right and is below other_particle center
-                smaller_particle.right = other_particle.left
-                smaller_particle.bottom = other_particle.bottom
-            else:
-                # smaller_particle is stationary on right of and below other_particle center
-                other_particle.left = smaller_particle.right
-                other_particle.bottom = smaller_particle.bottom
-
-    else:
-        # Vertical collision
-        if x_diff > 0 and y_diff > 10:
-            # smaller_particle is moving down and is right of other_particle center
-            if smaller_particle.speed > 0:
-                smaller_particle.bottom = other_particle.top
-                smaller_particle.left = other_particle.left
-            # smaller_particle is stationary and is right of other_particle center
-            else:
-                other_particle.top = smaller_particle.bottom
-                other_particle.left = smaller_particle.left
-
-        elif x_diff > 0 and y_diff < 10:
-            # smaller_particle is moving up and is right of other_particle center
-            if smaller_particle.speed > 0:
-                smaller_particle.top = other_particle.bottom
-                smaller_particle.left = other_particle.left
-            # smaller_particle is stationary and is right of other_particle center
-            else:
-                other_particle.bottom = smaller_particle.top
-                other_particle.left = smaller_particle.left
-
-        elif x_diff < 0 and y_diff > 10:
-            # smaller_particle is moving down and is left of other_particle center
-            if smaller_particle.speed > 0:
-                smaller_particle.bottom = other_particle.top
-                smaller_particle.right = other_particle.right
-            # smaller_particle is stationary and is left of other_particle center
-            else:
-                other_particle.top = smaller_particle.bottom
-                other_particle.right = smaller_particle.right
-            # smaller_particle is above other_particle and to the left of other_particle center
-
-        else:
-            # smaller_particle is moving up and is left of other_particle center
-            if smaller_particle.speed > 0:
-                smaller_particle.top = other_particle.bottom
-                smaller_particle.right = other_particle.right
-            # smaller_particle is stationary and is left of other_particle center
-            else:
-                other_particle.bottom = smaller_particle.top
-                other_particle.right = smaller_particle.right
-
-
 def standard_alignment(particle1, particle2, x_diff, y_diff):
     """
-    Align two particles of similar size upon collision.
+    Align two particles upon collision.
     """
-    # x_diff = particle1.center_x - particle2.center_x
-    # y_diff = particle1.center_y - particle2.center_y
 
     if abs(x_diff) > abs(y_diff):
         # Horizontal collision
         if x_diff > 0:
             # particle1 moving and is to the right of particle2
             if particle1.speed > 0:
-                particle1.left = particle2.right
-                particle1.top = particle2.top
+                (particle1.left, particle1.top) = (particle2.right, particle2.top)
+                # particle1.top = particle2.top
             # particle1 is stationary and is to the right of particle2
             else:
                 particle2.right = particle1.left
@@ -174,10 +181,6 @@ def standard_alignment(particle1, particle2, x_diff, y_diff):
                 particle2.bottom = particle1.top
                 particle2.left = particle1.left
 
-    # # Stop the movement of both particles
-    # particle1.speed = 0
-    # particle2.speed = 0
-
 
 def check_for_cubes(particles):
     # Iterate through particles and check if any form a cube
@@ -194,3 +197,4 @@ def check_for_cubes(particles):
 def is_cube(particle):
     # Implement logic to determine if this particle is part of a cube
     return False  # Placeholder logic
+

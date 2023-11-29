@@ -1,4 +1,6 @@
+# particles.py contains the Particle class and its subclasses.
 import arcade
+import math
 from constants import *
 
 class Particle(arcade.Sprite):
@@ -13,7 +15,9 @@ class Particle(arcade.Sprite):
         self.angle = 0
 
     def update(self):
-        pass
+        # Update position based on speed and angle
+        self.center_x += self.speed * math.cos(math.radians(self.angle))
+        self.center_y += self.speed * math.sin(math.radians(self.angle))
 
 class LightGreyParticle(Particle):
     def __init__(self):
@@ -59,10 +63,57 @@ class VividBlueParticle(Particle):
     def __init__(self):
         super().__init__(COLOR_VIVID_BLUE, 20, 20, 11)
 
+
 class PositiveParticle(Particle):
+    instances = []  # Class-level attribute for tracking instances
+
     def __init__(self):
-        super().__init__(COLOR_ELECTRIC_BLUE, 10, 10, 0.5)
+        super().__init__(COLOR_ELECTRIC_BLUE, 20, 20, 0.5)
+        PositiveParticle.instances.append(self)  # Add this instance to the list
+
+    @classmethod
+    def remove_instance(cls, instance):
+        if instance in cls.instances:
+            cls.instances.remove(instance)
+
 
 class NegativeParticle(Particle):
+    instances = []  # Class-level attribute for tracking instances
+
     def __init__(self):
-        super().__init__(COLOR_BRIGHT_RED, 10, 10, 0.5)
+        super().__init__(COLOR_BRIGHT_RED, 20, 20, 0.5)
+        NegativeParticle.instances.append(self)  # Add this instance to the list
+
+    @classmethod
+    def remove_instance(cls, instance):
+        if instance in cls.instances:
+            cls.instances.remove(instance)
+
+
+class FireParticle(arcade.Sprite):
+    def __init__(self, sun_center_x, sun_center_y):
+        # Create a fire texture
+        fire_texture = self.create_fire_texture(20)
+        super().__init__(texture=fire_texture, scale=1)
+
+        self.center_x = (sun_center_x + sun_center_y) / 2  # Set initial position
+        self.center_y = (sun_center_x + sun_center_y) / 2
+
+        # Set direction towards the screen edge
+        dx = SCREEN_WIDTH / 2 - self.center_x
+        dy = SCREEN_HEIGHT / 2 - self.center_y
+        self.angle = math.degrees(math.atan2(dy, dx)) + 180
+        self.speed = 2
+
+    @staticmethod
+    def create_fire_texture(size):
+        return arcade.make_soft_circle_texture(size, arcade.color.ORANGE, outer_alpha=255)
+
+    def update(self):
+        self.center_x += self.speed * math.cos(math.radians(self.angle))
+        self.center_y += self.speed * math.sin(math.radians(self.angle))
+
+
+
+
+

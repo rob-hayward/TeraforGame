@@ -1,3 +1,4 @@
+# sun.py
 import arcade
 import math
 import random
@@ -38,17 +39,17 @@ class Sun(arcade.Sprite):
         particle = particle_type()
 
         # Calculate the offset to place the particle slightly away from the sun's edge
-        offset = 0  # You can adjust this value
+        offset = 1  # You can adjust this value
 
         # Position the particle slightly away from the edge of the sun
         particle.center_x = self.center_x - ((self.size / 2) + offset) * math.cos(self.angle)
         particle.center_y = self.center_y - ((self.size / 2) + offset) * math.sin(self.angle)
 
+
         # Set the angle and speed for the particle to move towards the screen center
-        particle.angle = math.atan2(SCREEN_HEIGHT / 2 - particle.center_y,
-                                    SCREEN_WIDTH / 2 - particle.center_x)
-        particle.angle += math.pi
-        particle.speed = 1  # Adjust as needed
+        particle.angle = math.degrees(math.atan2(SCREEN_HEIGHT / 2 - particle.center_y,
+                                                 SCREEN_WIDTH / 2 - particle.center_x))
+        particle.speed = 1  # Set the initial speed
 
         return particle
 
