@@ -20,6 +20,24 @@ class Sun(arcade.Sprite):
         # self.update_texture()
         self.texture = arcade.make_soft_circle_texture(self.size, arcade.color.YELLOW, outer_alpha=255)
 
+    def calculate_visible_portion(self):
+        # Assuming the screen origin (0,0) is at the bottom left
+        left_bound = max(0, self.center_x - self.size / 2)
+        right_bound = min(SCREEN_WIDTH, self.center_x + self.size / 2)
+        bottom_bound = max(0, self.center_y - self.size / 2)
+        top_bound = min(SCREEN_HEIGHT, self.center_y + self.size / 2)
+
+        self.visible_x = left_bound
+        self.visible_y = bottom_bound
+        self.visible_width = right_bound - left_bound
+        self.visible_height = top_bound - bottom_bound
+
+    def draw(self):
+        # Set clipping to render only the visible portion
+        arcade.start_scissor(self.visible_x, self.visible_y, self.visible_width, self.visible_height)
+        super().draw()
+        arcade.stop_scissor()
+
     # def update_texture(self):
     #     # Change color to simulate burning
     #     if self.change_colors:
@@ -37,6 +55,8 @@ class Sun(arcade.Sprite):
         # Randomly choose the type of particle
         particle_type = random.choice([LightGreyParticle, PositiveParticle, NegativeParticle])
         particle = particle_type()
+        # for testing purposes, only emit LightGreyParticles
+        # particle = LightGreyParticle()
 
         # Calculate the offset to place the particle slightly away from the sun's edge
         offset = 1  # You can adjust this value
@@ -57,4 +77,5 @@ class Sun(arcade.Sprite):
         self.angle += ORBIT_SPEED  # Adjust this value to change the speed of orbit
         self.center_x = self.orbit_center_x + self.orbit_radius * math.cos(self.angle)
         self.center_y = self.orbit_center_y + self.orbit_radius * math.sin(self.angle)
+        self.calculate_visible_portion()
         # self.update_texture()

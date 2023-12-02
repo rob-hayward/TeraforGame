@@ -95,15 +95,17 @@ def handle_attraction(particle1, particle2, particles):
     light_grey_particle1.center_x, light_grey_particle1.center_y = particle1.center_x, particle1.center_y
     light_grey_particle2.center_x, light_grey_particle2.center_y = particle2.center_x, particle2.center_y
 
-    # Stop the movement of both particles
-    particle1.speed = 0
-    particle2.speed = 0
+    # Set speed to 0 to make them stationary
+    light_grey_particle1.speed = 0
+    light_grey_particle2.speed = 0
 
     # Add new particles to the list
     particles.append(light_grey_particle1)
     particles.append(light_grey_particle2)
 
-    # Remove the original particles
+    # Stop the movement of original particles and remove them
+    particle1.speed = 0
+    particle2.speed = 0
     particles.remove(particle1)
     particles.remove(particle2)
     PositiveParticle.remove_instance(particle1)
@@ -182,19 +184,4 @@ def standard_alignment(particle1, particle2, x_diff, y_diff):
                 particle2.left = particle1.left
 
 
-def check_for_cubes(particles):
-    # Iterate through particles and check if any form a cube
-    for particle in particles:
-        if is_cube(particle):
-            # Replace with a dark grey particle
-            dark_grey_particle = DarkGreyParticle()
-            dark_grey_particle.center_x = particle.center_x
-            dark_grey_particle.center_y = particle.center_y
-            particles.append(dark_grey_particle)
-            particles.remove(particle)
-
-
-def is_cube(particle):
-    # Implement logic to determine if this particle is part of a cube
-    return False  # Placeholder logic
 

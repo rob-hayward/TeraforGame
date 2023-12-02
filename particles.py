@@ -13,6 +13,7 @@ class Particle(arcade.Sprite):
         self.texture = arcade.make_soft_square_texture(max(width, height), color, outer_alpha=255)
         self.speed = 1
         self.angle = 0
+        self.is_neutral = True  # Default value for neutral particles
 
     def update(self):
         # Update position based on speed and angle
@@ -70,6 +71,7 @@ class PositiveParticle(Particle):
     def __init__(self):
         super().__init__(COLOR_ELECTRIC_BLUE, 20, 20, 0.5)
         PositiveParticle.instances.append(self)  # Add this instance to the list
+        self.is_neutral = False
 
     @classmethod
     def remove_instance(cls, instance):
@@ -83,7 +85,7 @@ class NegativeParticle(Particle):
     def __init__(self):
         super().__init__(COLOR_BRIGHT_RED, 20, 20, 0.5)
         NegativeParticle.instances.append(self)  # Add this instance to the list
-
+        self.is_neutral = False
     @classmethod
     def remove_instance(cls, instance):
         if instance in cls.instances:
