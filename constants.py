@@ -8,9 +8,9 @@ SCREEN_WIDTH = 1512
 SCREEN_HEIGHT = 982
 
 # Constants for sun
-SUN_SIZE = 1500
+SUN_SIZE = 750
 ORBIT_RADIUS = 1220
-ORBIT_SPEED = 0.005
+ORBIT_SPEED = 0.5
 PARTICLE_EMISSION_MIN_TIME = 2  # Minimum time in seconds
 PARTICLE_EMISSION_MAX_TIME = 5  # Maximum time in seconds
 

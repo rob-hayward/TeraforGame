@@ -111,9 +111,34 @@ class FireParticle(arcade.Sprite):
     def create_fire_texture(size):
         return arcade.make_soft_circle_texture(size, arcade.color.ORANGE, outer_alpha=255)
 
+    def check_collision_with_sun(self, sun):
+        # Check for collision with the sun sprite
+        return arcade.check_for_collision(self, sun)
+
+    def is_outside_screen(self):
+        # Check if the particle is outside the screen bounds
+        return (self.center_x < 0 or self.center_x > SCREEN_WIDTH or
+                self.center_y < 0 or self.center_y > SCREEN_HEIGHT)
+
     def update(self):
         self.center_x += self.speed * math.cos(math.radians(self.angle))
         self.center_y += self.speed * math.sin(math.radians(self.angle))
+
+
+class RadioactiveParticle(Particle):
+    def __init__(self):
+        super().__init__(arcade.color.GREEN_YELLOW, 20, 20, 0)  # Example color and size
+        self.speed = 2  # Example speed
+
+    def update(self):
+        super().update()
+        # Check if outside the screen or handle collision logic
+        if self.is_outside_screen():
+            self.remove_from_sprite_lists()
+
+    def is_outside_screen(self):
+        return (self.center_x < 0 or self.center_x > SCREEN_WIDTH or
+                self.center_y < 0 or self.center_y > SCREEN_HEIGHT)
 
 
 

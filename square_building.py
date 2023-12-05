@@ -4,18 +4,16 @@ from particles import *
 
 
 def check_proximity(particle1, particle2):
-    distance = math.sqrt((particle1.center_x - particle2.center_x) ** 2 +
-                         (particle1.center_y - particle2.center_y) ** 2)
-    return distance <= 21  # Adjust this value based on your adjacency criteria
+    squared_distance = (particle1.center_x - particle2.center_x) ** 2 + \
+                       (particle1.center_y - particle2.center_y) ** 2
+    return squared_distance <= (21 ** 2)  # Compare against squared distance
 
 
 def is_square(pair1, pair2):
     p1, p2 = pair1
     p3, p4 = pair2
-    centers = [(p.center_x, p.center_y) for p in [p1, p2, p3, p4]]
-    x_coords = {center[0] for center in centers}
-    y_coords = {center[1] for center in centers}
-    return len(x_coords) == 2 and len(y_coords) == 2
+    return {p1.center_x, p2.center_x} == {p3.center_x, p4.center_x} and \
+           {p1.center_y, p2.center_y} == {p3.center_y, p4.center_y}
 
 
 def find_square_center(square):
@@ -141,6 +139,10 @@ def check_for_adjacent_squares(squares_list):
 
 
 def check_for_big_squares(adjacent_squares_list):
+    # Early exit if there are less than 2 sets of adjacent squares
+    if len(adjacent_squares_list) < 2:
+        return []
+
     big_squares = []
 
     for pair1 in adjacent_squares_list:

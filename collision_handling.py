@@ -2,7 +2,8 @@
 import math
 import arcade
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from particles import LightGreyParticle, DarkGreyParticle, PositiveParticle, NegativeParticle, FireParticle
+from particles import LightGreyParticle, DarkGreyParticle, PositiveParticle, NegativeParticle, FireParticle, RadioactiveParticle
+import random
 
 
 def handle_repulsion(particle1, particle2, particles, sun_center_x, sun_center_y):
@@ -25,22 +26,53 @@ def handle_repulsion(particle1, particle2, particles, sun_center_x, sun_center_y
         NegativeParticle.remove_instance(particle2)
 
 
-def update_particles(particles, delta_time, sun_center_x, sun_center_y):
+def update_particles(particles, delta_time, sun):
     handled_particles = set()
+    particles_to_remove = []
+
     for particle in particles:
         particle.update()
 
-        # Check for adjacent positive or negative particles
-        check_for_adjacent_charged_particles(particles, sun_center_x, sun_center_y, handled_particles)
+        # Handle specific behavior for FireParticle
+        if isinstance(particle, FireParticle):
+            if particle.check_collision_with_sun(sun):
+                # Replace with two radioactive particles
+                for _ in range(2):
+                    radioactive_particle = RadioactiveParticle()
+                    radioactive_particle.center_x = particle.center_x
+                    radioactive_particle.center_y = particle.center_y
+                    # Assign a random trajectory towards the screen center
+                    angle = random.uniform(-30, 30)  # Adjust as needed
+                    radioactive_particle.angle = particle.angle + angle
+                    particles.append(radioactive_particle)
 
-        # Collision detection and handling
-        hit_list = arcade.check_for_collision_with_list(particle, particles)
-        for hit_particle in hit_list:
-            if hit_particle != particle and hit_particle not in handled_particles:
-                # Handle standard collision
-                handle_collision(particle, hit_particle)
-                handled_particles.update([particle, hit_particle])
-                break  # Stop checking after the first collision
+                particles_to_remove.append(particle)
+                continue
+            elif particle.is_outside_screen():
+                particles_to_remove.append(particle)
+                continue  # Skip further checks for this FireParticle
+
+        # For other particle types, check for collisions
+        for other_particle in particles:
+            if other_particle != particle and other_particle not in handled_particles:
+                if arcade.check_for_collision(particle, other_particle):
+                    # Determine action based on particle types
+                    if isinstance(particle, (PositiveParticle, NegativeParticle)) and \
+                       isinstance(other_particle, (PositiveParticle, NegativeParticle)):
+                        # Handle repulsion or attraction
+                        if particle.__class__ == other_particle.__class__:
+                            handle_repulsion(particle, other_particle, particles, sun.center_x, sun.center_y)
+                        else:
+                            handle_attraction(particle, other_particle, particles)
+                    else:
+                        # Handle standard collision
+                        handle_collision(particle, other_particle)
+                    handled_particles.update([particle, other_particle])
+                    break  # Stop checking after the first collision
+
+    # Remove particles that are marked for removal
+    for particle in particles_to_remove:
+        particles.remove(particle)
 
 
 def check_for_adjacent_charged_particles(particles, sun_center_x, sun_center_y, handled_particles):
@@ -81,9 +113,10 @@ def check_for_adjacent_charged_particles(particles, sun_center_x, sun_center_y, 
 
 
 def check_proximity(particle1, particle2):
-    distance = math.sqrt((particle1.center_x - particle2.center_x) ** 2 +
-                         (particle1.center_y - particle2.center_y) ** 2)
-    return distance <= 21  # Adjacent particles
+    dx = particle1.center_x - particle2.center_x
+    dy = particle1.center_y - particle2.center_y
+    squared_distance = dx * dx + dy * dy
+    return squared_distance <= (21 * 21)  # Compare squared distance
 
 
 def handle_attraction(particle1, particle2, particles):

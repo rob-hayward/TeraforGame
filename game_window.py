@@ -19,7 +19,9 @@ class MyGame(arcade.Window):
         self.particles = arcade.SpriteList()
 
     def setup(self):
-        self.sun = Sun(SUN_SIZE)
+        self.sun = Sun("assets/SunSprite.png", scale=1.05,
+                       orbit_radius=ORBIT_RADIUS,
+                       orbit_speed=ORBIT_SPEED)
         self.light_grey_particle = LightGreyParticle()
         self.light_grey_particle.center_x = SCREEN_WIDTH / 2
         self.light_grey_particle.center_y = SCREEN_HEIGHT / 2
@@ -50,7 +52,7 @@ class MyGame(arcade.Window):
                 particle.update()
             else:
                 # Update particle positions and handle collisions/explosions
-                update_particles(self.particles, delta_time, self.sun.center_x, self.sun.center_y)
+                update_particles(self.particles, delta_time, self.sun)
 
                 # Check for squares and big squares
                 neutral_particle_classes = [LightGreyParticle, DarkGreyParticle, BrownParticle, RustRedParticle,
