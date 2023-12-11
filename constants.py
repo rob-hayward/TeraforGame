@@ -10,9 +10,9 @@ SCREEN_HEIGHT = 982
 # Constants for sun
 SUN_SIZE = 750
 ORBIT_RADIUS = 1220
-ORBIT_SPEED = 0.5
+ORBIT_SPEED = 0.3
 PARTICLE_EMISSION_MIN_TIME = 2  # Minimum time in seconds
-PARTICLE_EMISSION_MAX_TIME = 5  # Maximum time in seconds
+PARTICLE_EMISSION_MAX_TIME = 6  # Maximum time in seconds
 
 # Particle Colors
 COLOR_LIGHT_GREY = arcade.color.LIGHT_GRAY
