@@ -8,6 +8,7 @@ from square_building import group_particles_by_type, find_3x3_squares
 from sun import Sun
 from particles import *
 from collision_handling import detect_collision, handle_collision, stationary_particles, moving_particles
+from scoring import Scoring
 
 
 class MyGame(arcade.Window):
@@ -21,77 +22,37 @@ class MyGame(arcade.Window):
         self.next_particle_time = random.uniform(PARTICLE_EMISSION_MIN_TIME, PARTICLE_EMISSION_MAX_TIME)
         self.particles = arcade.SpriteList()
         self.background = None
-        self.high_score = 0
-        self.high_score_name = ""
-        self.load_high_score()
         self.scroll_text_y = SCREEN_HEIGHT * 2.8
         self.load_scrolling_text()
         self.player_name = ""
         self.is_high_score = False
+        self.scoring = Scoring("high_score.txt")
+        self.current_score = 0
 
     def load_scrolling_text(self):
         with open("scrolling_text.txt", "r") as file:
             self.scroll_text = file.read()
 
-    def load_high_score(self):
-        try:
-            with open("high_score.txt", "r") as file:
-                high_scores = [line.strip().split(',') for line in file]
-                high_scores.sort(key=lambda x: int(x[1]), reverse=True)
-                if high_scores:
-                    self.high_score_name, self.high_score = high_scores[0]
-                    self.high_score = int(self.high_score)
-        except FileNotFoundError:
-            self.high_score = 0
-            self.high_score_name = ""
-
-    def save_high_score(self, name, score):
-        with open("high_score.txt", "w") as file:
-            file.write(f"{name},{score}")
-
-    def update_score(self):
-        # Calculate the current score
-        self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
-
-    def get_top_high_scores(self, number_of_scores=10):
-        scores = []
-        try:
-            with open("high_score.txt", "r") as file:
-                for line in file:
-                    name, score = line.strip().split(',')
-                    scores.append((name, int(score)))
-        except FileNotFoundError:
-            # If the file doesn't exist, just return an empty list or a default list of scores
-            return []
-
-        # Sort the scores based on the score value in descending order
-        scores.sort(key=lambda x: x[1], reverse=True)
-
-        # Return the top scores
-        return scores[:number_of_scores]
-
     def draw_high_scores(self, start_y):
-        top_scores = self.get_top_high_scores()
-        font_size = 40  # Adjust font size as needed
-        font_name = "Kenney Mini Square"  # Set the desired font
+        top_scores = self.scoring.get_top_high_scores()
 
         for rank, (name, score) in enumerate(top_scores, start=1):
             text = f"{rank}. {name}: {score}"
-            arcade.draw_text(text, SCREEN_WIDTH / 2, start_y, arcade.color.WHITE, font_size, anchor_x="center",
-                             font_name=font_name)
-            start_y -= 70  # Adjust the spacing between lines if needed
+            arcade.draw_text(text, SCREEN_WIDTH / 2, start_y, arcade.color.WHITE,
+                             font_size=40, font_name="Kenney Mini Square", anchor_x="center")
+            start_y -= 60  # Adjust the spacing between lines if needed
 
     def game_over(self):
-        top_scores = self.get_top_high_scores()
-        if self.current_score > top_scores[-1][1] or len(top_scores) < 10:
+        self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
+        if self.scoring.is_high_score(self.current_score):
             self.is_high_score = True
-            self.player_name = input("Enter your name: ")  # Replace with your input method
-            top_scores.append((self.player_name, self.current_score))
-            top_scores.sort(key=lambda x: x[1], reverse=True)
-            top_scores = top_scores[:10]  # Keep only top 10 scores
-            self.save_high_scores(top_scores)
-        self.game_state = "GAME_OVER"
+            self.game_state = "GAME_OVER"
+            print(f"High Score Achieved: {self.current_score}")
+        else:
+            self.game_state = "WELCOME"  # Or another state as needed
+        print(f"Current Score: {self.current_score}")
 
+    # move to scoring.py
     def save_high_scores(self, high_scores):
         with open("high_score.txt", "w") as file:
             for name, score in high_scores:
@@ -105,8 +66,8 @@ class MyGame(arcade.Window):
         self.light_grey_particle = LightGreyParticle()
         self.light_grey_particle.center_x = SCREEN_WIDTH / 2
         self.light_grey_particle.center_y = SCREEN_HEIGHT / 2
-        # self.light_grey_particle.center_x = SCREEN_WIDTH
-        # self.light_grey_particle.center_y = SCREEN_HEIGHT
+        # self.light_grey_particle.center_x = SCREEN_WIDTH # for testing game over
+        # self.light_grey_particle.center_y = SCREEN_HEIGHT # for testing game over
         self.light_grey_particle.speed = 0
         self.particles.append(self.light_grey_particle)
 
@@ -128,7 +89,7 @@ class MyGame(arcade.Window):
         # Split the text into lines
         lines = self.scroll_text.split('\n')
         line_height = 20  # Adjust as needed for spacing between lines
-        start_y = self.scroll_text_y
+        start_y = self.scroll_text_y + 200
 
         for line in lines:
             if "TERAFOR" in line:  # Check if the line is the game name
@@ -150,15 +111,20 @@ class MyGame(arcade.Window):
         for particle in self.particles:
             particle.draw()
 
+        # Get the top high score from scoring object
+        top_high_score = self.scoring.get_top_high_scores(1)
+        if top_high_score:
+            high_score_name, high_score = top_high_score[0]
+        else:
+            high_score_name, high_score = ("", 0)
+
         # Display the high score in the top left corner
-        high_score_text = f"High Score  {self.high_score_name} - {self.high_score}"
+        high_score_text = f"High Score {high_score_name} - {high_score}"
         arcade.draw_text(high_score_text, 10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
-        # Update the current score
-        self.update_score()
-
-        # Display the current score in the top right corner
-        current_score_text = f"Current Score    {self.current_score}"
+        # Update and display the current score in the top right corner
+        self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
+        current_score_text = f"Current Score {self.current_score}"
         arcade.draw_text(current_score_text, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14,
                          font_name="Kenney Blocks")
 
@@ -175,7 +141,7 @@ class MyGame(arcade.Window):
         sun_sprite.draw()
 
         # Draw the high scores on top of the sun sprite
-        start_y_for_high_scores = sun_center_y + 200  # Adjust as needed
+        start_y_for_high_scores = sun_center_y + 80  # Adjust as needed
         self.draw_high_scores(start_y_for_high_scores)
 
         # Draw "Press ESC to exit" text
@@ -184,6 +150,14 @@ class MyGame(arcade.Window):
 
         # Draw "Exit" button
         arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
+
+        if self.is_high_score:
+            # Draw text input box higher up the page
+            text_input_y_position = self.height // 2 + 200  # Adjust Y-coordinate to move higher
+            arcade.draw_text("Congratulations! Enter Name:", self.width // 2, text_input_y_position,
+                             arcade.color.WHITE, 40, font_name="Kenney Blocks", anchor_x="center")
+            arcade.draw_text(self.player_name, self.width // 2, text_input_y_position - 60,
+                             arcade.color.WHITE, 40, font_name="Kenney Mini Square", anchor_x="center")
 
     def update(self, delta_time):
         if self.game_state == "WELCOME":
@@ -213,6 +187,8 @@ class MyGame(arcade.Window):
             # Update particle positions and handle collisions
             detect_collision(self.particles, delta_time, self.sun)
 
+            self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
+
             groups = group_particles_by_type(stationary_particles)
             find_3x3_squares(groups, stationary_particles, self.particles)
 
@@ -223,12 +199,28 @@ class MyGame(arcade.Window):
                     return
 
     def on_key_press(self, key, modifiers):
+        if self.is_high_score:
+            if key == arcade.key.BACKSPACE:
+                self.player_name = self.player_name[:-1]
+            elif key == arcade.key.ENTER and self.player_name:
+                self.scoring.update_high_scores(self.player_name, self.current_score)
+                self.is_high_score = False
+                self.game_state = "WELCOME"  # Or another state as needed
+            elif 97 <= key <= 122:  # ASCII values for lowercase letters
+                if len(self.player_name) < 20:  # Limit name length
+                    self.player_name += chr(key).upper()
+            return
+
         if self.game_state in ["WELCOME", "GAME_OVER"]:
+            # If the game is in the WELCOME or GAME_OVER state, pressing ESCAPE will close the game
             if key == arcade.key.ESCAPE:
                 self.close()
                 return
+
         elif self.game_state == "GAME":
+            # If the game is in progress and ESCAPE is pressed, trigger game over
             if key == arcade.key.ESCAPE:
+                self.game_over()  # Call the game_over method
                 self.game_state = "GAME_OVER"
                 return
 

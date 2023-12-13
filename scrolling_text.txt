@@ -4,7 +4,7 @@ interesting interactions.
 weak enough to give time for interactions,
 
 
-and drawn in by an inevitable gravity,
+drawn in by an inevitable gravity,
 
 
 energetic repulsion from an overcharged body,
@@ -77,6 +77,12 @@ Press 'Space' to Launch
 Now, build your planet!
 
 
+'esc' to escape
+
+
+'P' to pause
+
+
 'Return' to reverse orbit
 
 
@@ -84,6 +90,9 @@ Now, build your planet!
 
 
 'Up Down Left Right' to create a gravitational force
+
+
+Player Controls:
 
 
 
