@@ -12,7 +12,7 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ORBIT_RADIUS, ORBIT_SPEED
 
 
 class Sun(arcade.Sprite):
-    def __init__(self, image_file, scale=1.00, orbit_radius=ORBIT_RADIUS, orbit_speed=ORBIT_SPEED):
+    def __init__(self, image_file, scale=1.05, orbit_radius=ORBIT_RADIUS, orbit_speed=ORBIT_SPEED):
         super().__init__(image_file, scale)
         self.orbit_radius = orbit_radius
         self.orbit_speed = orbit_speed

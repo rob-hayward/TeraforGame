@@ -2,7 +2,8 @@
 import arcade
 import math
 import random
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, SUN_SIZE, ORBIT_RADIUS, PARTICLE_EMISSION_MIN_TIME, PARTICLE_EMISSION_MAX_TIME
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, SUN_SIZE, ORBIT_RADIUS, PARTICLE_EMISSION_MIN_TIME, \
+    PARTICLE_EMISSION_MAX_TIME
 from square_building import group_particles_by_type, find_3x3_squares
 from sun import Sun
 from particles import *
@@ -12,7 +13,7 @@ from collision_handling import detect_collision, handle_collision, stationary_pa
 class MyGame(arcade.Window):
     def __init__(self, title):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, title, fullscreen=True)
-        self.game_state = "WELCOME"  # New game state attribute
+        self.game_state = "WELCOME"
         self.paused = False
         self.sun = None
         self.light_grey_particle = None
@@ -22,16 +23,24 @@ class MyGame(arcade.Window):
         self.background = None
         self.high_score = 0
         self.high_score_name = ""
-        self.load_high_score()  # Load the high score at initialization
-        self.scroll_text_y = -SCREEN_HEIGHT  # Start position for scrolling text
-        self.scroll_text = "Welcome to the Game! [Scrolling Introduction Text Here. Lets test it because I did not see it before.]"
+        self.load_high_score()
+        self.scroll_text_y = SCREEN_HEIGHT * 2.8
+        self.load_scrolling_text()
+        self.player_name = ""
+        self.is_high_score = False
+
+    def load_scrolling_text(self):
+        with open("scrolling_text.txt", "r") as file:
+            self.scroll_text = file.read()
 
     def load_high_score(self):
         try:
             with open("high_score.txt", "r") as file:
-                name, score = file.read().split(',')
-                self.high_score = int(score)
-                self.high_score_name = name
+                high_scores = [line.strip().split(',') for line in file]
+                high_scores.sort(key=lambda x: int(x[1]), reverse=True)
+                if high_scores:
+                    self.high_score_name, self.high_score = high_scores[0]
+                    self.high_score = int(self.high_score)
         except FileNotFoundError:
             self.high_score = 0
             self.high_score_name = ""
@@ -44,19 +53,60 @@ class MyGame(arcade.Window):
         # Calculate the current score
         self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
 
+    def get_top_high_scores(self, number_of_scores=10):
+        scores = []
+        try:
+            with open("high_score.txt", "r") as file:
+                for line in file:
+                    name, score = line.strip().split(',')
+                    scores.append((name, int(score)))
+        except FileNotFoundError:
+            # If the file doesn't exist, just return an empty list or a default list of scores
+            return []
+
+        # Sort the scores based on the score value in descending order
+        scores.sort(key=lambda x: x[1], reverse=True)
+
+        # Return the top scores
+        return scores[:number_of_scores]
+
+    def draw_high_scores(self, start_y):
+        top_scores = self.get_top_high_scores()
+        font_size = 40  # Adjust font size as needed
+        font_name = "Kenney Mini Square"  # Set the desired font
+
+        for rank, (name, score) in enumerate(top_scores, start=1):
+            text = f"{rank}. {name}: {score}"
+            arcade.draw_text(text, SCREEN_WIDTH / 2, start_y, arcade.color.WHITE, font_size, anchor_x="center",
+                             font_name=font_name)
+            start_y -= 70  # Adjust the spacing between lines if needed
+
+    def game_over(self):
+        top_scores = self.get_top_high_scores()
+        if self.current_score > top_scores[-1][1] or len(top_scores) < 10:
+            self.is_high_score = True
+            self.player_name = input("Enter your name: ")  # Replace with your input method
+            top_scores.append((self.player_name, self.current_score))
+            top_scores.sort(key=lambda x: x[1], reverse=True)
+            top_scores = top_scores[:10]  # Keep only top 10 scores
+            self.save_high_scores(top_scores)
+        self.game_state = "GAME_OVER"
+
+    def save_high_scores(self, high_scores):
+        with open("high_score.txt", "w") as file:
+            for name, score in high_scores:
+                file.write(f"{name},{score}\n")
+
     def setup(self):
         self.background = arcade.load_texture("assets/galaxy_background.png")
         self.sun = Sun("assets/SunSprite.png", scale=1.05,
                        orbit_radius=ORBIT_RADIUS,
                        orbit_speed=ORBIT_SPEED)
-
-        # Calculate starting positions for the 3x3 square
-        start_x = SCREEN_WIDTH / 2 - 20  # Leftmost particle's center
-        start_y = SCREEN_HEIGHT / 2 - 20  # Topmost particle's center
-
         self.light_grey_particle = LightGreyParticle()
         self.light_grey_particle.center_x = SCREEN_WIDTH / 2
         self.light_grey_particle.center_y = SCREEN_HEIGHT / 2
+        # self.light_grey_particle.center_x = SCREEN_WIDTH
+        # self.light_grey_particle.center_y = SCREEN_HEIGHT
         self.light_grey_particle.speed = 0
         self.particles.append(self.light_grey_particle)
 
@@ -69,13 +119,29 @@ class MyGame(arcade.Window):
             self.draw_welcome_screen()
         elif self.game_state == "GAME":
             self.draw_game_screen()
+        elif self.game_state == "GAME_OVER":
+            self.draw_game_over_screen()
 
     def draw_welcome_screen(self):
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
-        arcade.draw_text("Press 'Space' to Launch", SCREEN_WIDTH / 2, 50, arcade.color.WHITE, 24,
-                         anchor_x="center")
-        arcade.draw_text(self.scroll_text, SCREEN_WIDTH / 2, self.scroll_text_y, arcade.color.YELLOW, 18,
-                         anchor_x="center")
+
+        # Split the text into lines
+        lines = self.scroll_text.split('\n')
+        line_height = 20  # Adjust as needed for spacing between lines
+        start_y = self.scroll_text_y
+
+        for line in lines:
+            if "TERAFOR" in line:  # Check if the line is the game name
+                # Draw "TERAFOR" with a specific font and larger size
+                arcade.draw_text(line, SCREEN_WIDTH / 2, start_y, arcade.color.YELLOW, 150, anchor_x="center",
+                                 font_name="Kenney Blocks")
+            else:
+                # Draw other lines with the regular font and size
+                arcade.draw_text(line, SCREEN_WIDTH / 2, start_y, arcade.color.YELLOW, 30, anchor_x="center",
+                                 font_name="Kenney Mini Square")
+            start_y -= line_height  # Move down for the next line
+
+        arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
     def draw_game_screen(self):
         arcade.start_render()
@@ -85,17 +151,39 @@ class MyGame(arcade.Window):
             particle.draw()
 
         # Display the high score in the top left corner
-        high_score_text = f"High Score: {self.high_score_name} - {self.high_score}"
-        arcade.draw_text(high_score_text, 10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14)
+        high_score_text = f"High Score  {self.high_score_name} - {self.high_score}"
+        arcade.draw_text(high_score_text, 10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
         # Update the current score
-        self.update_score()  # Make sure the current score is updated
+        self.update_score()
 
         # Display the current score in the top right corner
-        current_score_text = f"Current Score: {self.current_score}"
-        arcade.draw_text(current_score_text, SCREEN_WIDTH - 150, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14)
+        current_score_text = f"Current Score    {self.current_score}"
+        arcade.draw_text(current_score_text, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14,
+                         font_name="Kenney Blocks")
 
-        arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14)
+        arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
+
+    def draw_game_over_screen(self):
+        # Draw the background
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
+
+        # Draw the sun sprite in the center
+        sun_center_x = SCREEN_WIDTH / 2
+        sun_center_y = SCREEN_HEIGHT / 2
+        sun_sprite = arcade.Sprite("assets/SunSprite.png", center_x=sun_center_x, center_y=sun_center_y)
+        sun_sprite.draw()
+
+        # Draw the high scores on top of the sun sprite
+        start_y_for_high_scores = sun_center_y + 200  # Adjust as needed
+        self.draw_high_scores(start_y_for_high_scores)
+
+        # Draw "Press ESC to exit" text
+        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2, 800, arcade.color.WHITE, 90, anchor_x="center",
+                         font_name="Kenney Blocks")
+
+        # Draw "Exit" button
+        arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
     def update(self, delta_time):
         if self.game_state == "WELCOME":
@@ -104,15 +192,15 @@ class MyGame(arcade.Window):
             self.update_game_screen(delta_time)
 
     def update_welcome_screen(self, delta_time):
-        self.scroll_text_y += 1  # Adjust speed as needed
-        if self.scroll_text_y > SCREEN_HEIGHT:
-            self.scroll_text_y = -SCREEN_HEIGHT  # Reset scrolling
+        self.scroll_text_y -= 0.5  # Scroll the text upwards
+        if self.scroll_text_y < -SCREEN_HEIGHT / 2:
+            self.scroll_text_y = SCREEN_HEIGHT
 
     def update_game_screen(self, delta_time):
         if not self.paused:
             # Proceed with updating only if the game is not paused
             self.sun.update()
-            # self.light_grey_particle.update()
+            self.light_grey_particle.update()
 
             # Emit new particles and update positions
             self.particle_timer += delta_time
@@ -128,11 +216,26 @@ class MyGame(arcade.Window):
             groups = group_particles_by_type(stationary_particles)
             find_3x3_squares(groups, stationary_particles, self.particles)
 
+            # Check for game over condition
+            for particle in stationary_particles:
+                if arcade.check_for_collision(particle, self.sun):
+                    self.game_over()  # Handle game over
+                    return
+
     def on_key_press(self, key, modifiers):
+        if self.game_state in ["WELCOME", "GAME_OVER"]:
+            if key == arcade.key.ESCAPE:
+                self.close()
+                return
+        elif self.game_state == "GAME":
+            if key == arcade.key.ESCAPE:
+                self.game_state = "GAME_OVER"
+                return
+
         if self.game_state == "WELCOME":
             if key == arcade.key.SPACE:
                 self.game_state = "GAME"
-                return  # Return early to avoid processing further key events
+                return
 
         elif self.game_state == "GAME":
             # Define movement angles
@@ -163,30 +266,22 @@ class MyGame(arcade.Window):
                     elif key == arcade.key.D:
                         particle.angle = move_right_angle
 
-            # Control for light grey particles
-            if key == arcade.key.UP:
-                for particle in moving_particles:
-                    if isinstance(particle, LightGreyParticle) and particle.speed < 5.0:
-                        particle.speed += 0.1  # Increase speed, up to a maximum of 5.0
-            elif key == arcade.key.DOWN:
-                for particle in moving_particles:
-                    if isinstance(particle, LightGreyParticle) and particle.speed > 0.5:
-                        particle.speed -= 0.1  # Decrease speed, but not below 0.1
+                elif isinstance(particle, LightGreyParticle):
+                    if key == arcade.key.UP:
+                        particle.angle = move_up_angle
+                    elif key == arcade.key.DOWN:
+                        particle.angle = move_down_angle
+                    elif key == arcade.key.LEFT:
+                        particle.angle = move_left_angle
+                    elif key == arcade.key.RIGHT:
+                        particle.angle = move_right_angle
 
-            # Reverse orbit direction logic
-            if key == arcade.key.RIGHT:
-                if self.sun.orbit_speed > 0:  # Currently moving clockwise
-                    self.sun.reverse_orbit_direction()
-            elif key == arcade.key.LEFT:
-                if self.sun.orbit_speed < 0:  # Currently moving anticlockwise
-                    self.sun.reverse_orbit_direction()
+            if key == arcade.key.RETURN:
+                self.sun.reverse_orbit_direction()
 
             # Toggle pause state only when in GAME state
-            if key == arcade.key.SPACE:
+            if key == arcade.key.P:
                 self.paused = not self.paused
-
-        if key == arcade.key.ESCAPE:
-            self.close()
 
         super().on_key_press(key, modifiers)
 
@@ -194,14 +289,14 @@ class MyGame(arcade.Window):
         super().on_key_release(key, modifiers)
 
         # Set angles of moving particles towards the center on key release
-        if key in [arcade.key.W, arcade.key.A, arcade.key.S, arcade.key.D]:
+        if key in [arcade.key.W, arcade.key.A, arcade.key.S, arcade.key.D, arcade.key.UP, arcade.key.DOWN,
+                   arcade.key.LEFT, arcade.key.RIGHT]:
             center_x = SCREEN_WIDTH / 2
             center_y = SCREEN_HEIGHT / 2
             for particle in moving_particles:
-                if isinstance(particle, (PositiveParticle, NegativeParticle)):
+                if isinstance(particle, (PositiveParticle, NegativeParticle, LightGreyParticle)):
                     particle.angle = particle.angle_towards_center(center_x, center_y)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        # Check if the exit text is clicked
-        if 0 <= x <= 100 and 0 <= y <= 20:
+        if 0 <= x <= 100 and 0 <= y <= 20:  # Specific area for exit
             self.close()

@@ -74,11 +74,11 @@ class BrownParticle(Particle):
 
 
 class PositiveParticle(Particle):
-    instances = []  # Class-level attribute for tracking instances
+    instances = []
 
     def __init__(self):
         super().__init__("assets/blue_energy2.png", 20, 20, 0)
-        PositiveParticle.instances.append(self)  # Add this instance to the list
+        PositiveParticle.instances.append(self)
         self.is_neutral = False
 
     @classmethod
@@ -88,11 +88,11 @@ class PositiveParticle(Particle):
 
 
 class NegativeParticle(Particle):
-    instances = []  # Class-level attribute for tracking instances
+    instances = []
 
     def __init__(self):
         super().__init__("assets/red_energy2.png", 20, 20, 0)
-        NegativeParticle.instances.append(self)  # Add this instance to the list
+        NegativeParticle.instances.append(self)
         self.is_neutral = False
 
     @classmethod

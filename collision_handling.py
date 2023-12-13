@@ -130,7 +130,7 @@ def check_proximity(particle1, particle2):
     squared_distance = dx * dx + dy * dy
 
     # Define the proximity threshold (this can be adjusted as needed)
-    proximity_threshold = 21 * 21  # Example threshold
+    proximity_threshold = 20 * 20  # Example threshold
     return squared_distance <= proximity_threshold
 
 
@@ -201,53 +201,5 @@ def emit_radioactive_particles(particle, particles):
         particles.append(radioactive_particle)
 
 
-# def check_multiple_adjacent(particle1, particle2, particles, sun):
-#     # Create a copy of stationary_particles for safe iteration
-#     stationary_particles_copy = set(stationary_particles)
-#
-#     for particle3 in stationary_particles_copy:
-#         if particle3 is particle1 or particle3 is particle2:
-#             continue
-#
-#         if check_proximity(particle1, particle3) and check_proximity(particle2, particle3):
-#             # Skip radioactive and charged particles
-#             if isinstance(particle3, RadioactiveParticle or PositiveParticle or NegativeParticle):
-#                 continue
-#
-#             # Find the particle with the lowest gravitational value
-#             min_gravitational_particle = min([particle1, particle2, particle3], key=lambda p: p.gravitational_value)
-#
-#             # Check if this particle has at least two adjacent particles with higher gravitational values
-#             adjacent_higher_particles = sum(1 for p in [particle1, particle2, particle3]
-#                                             if p.gravitational_value > min_gravitational_particle.gravitational_value)
-#
-#             if adjacent_higher_particles >= 2:
-#                 handle_gravitational_increase(min_gravitational_particle, particles)
-#
-#
-# def handle_gravitational_increase(particle, particles):
-#     # Get the next gravitational value
-#     next_gravitational_value = particle.gravitational_value + 1
-#
-#     # Find the particle class corresponding to the next gravitational value
-#     NewParticleClass = GRAVITATIONAL_MAPPING.get(next_gravitational_value)
-#
-#     if NewParticleClass:
-#         # Create a new particle of the higher gravitational class
-#         new_particle = NewParticleClass()
-#         new_particle.center_x, new_particle.center_y = particle.center_x, particle.center_y
-#         new_particle.speed = 0  # Assuming the new particle should be stationary initially
-#
-#         # Replace the existing particle with the new one
-#         if particle in stationary_particles:
-#             stationary_particles.remove(particle)
-#         if particle in particles:
-#             particles.remove(particle)
-#
-#         stationary_particles.add(new_particle)
-#         particles.append(new_particle)
-#
-#         print(f"Replaced particle with higher gravitational particle at ({new_particle.center_x}, {new_particle.center_y})")
-#     else:
-#         print("No higher gravitational particle class found")
+
 
