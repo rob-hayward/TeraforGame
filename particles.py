@@ -28,56 +28,34 @@ class Particle(arcade.Sprite):
 
 class LightGreyParticle(Particle):
     def __init__(self):
-        super().__init__("assets/light_grey_rock.png", 20, 20, 1)
+        super().__init__("assets/images/light_grey_rock.png", 20, 20, 1)
 
 
-class DarkGreyParticle(Particle):
-    def __init__(self):
-        super().__init__("assets/dark_grey_rock.png", 20, 20, 2)
+# class DarkGreyParticle(Particle):
+#     def __init__(self):
+#         super().__init__("assets/images/dark_grey_rock.png", 20, 20, 2)
 
 
 class BrownParticle(Particle):
     def __init__(self):
-        super().__init__("assets/brown_rock.png", 20, 20, 3)
+        super().__init__("assets/images/brown_rock.png", 20, 20, 2)
 
-# class RustRedParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_RUST_RED, 20, 20, 4)
-#
-# class CrimsonParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_CRIMSON, 20, 20, 5)
-#
-# class OrangeParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_ORANGE, 20, 20, 6)
-#
-# class BrightYellowParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_BRIGHT_YELLOW, 20, 20, 7)
-#
-# class LightYellowParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_LIGHT_YELLOW, 20, 20, 8)
-#
-# class WhiteParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_WHITE, 20, 20, 9)
-#
-# class BlueWhiteParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_BLUE_WHITE, 20, 20, 10)
-#
-# class VividBlueParticle(Particle):
-#     def __init__(self):
-#         super().__init__(COLOR_VIVID_BLUE, 20, 20, 11)
+class MeltingParticle(Particle):
+    def __init__(self):
+        super().__init__("assets/images/melting_rock.png", 20, 20, 3)
+
+class MagmaParticle(Particle):
+    def __init__(self):
+        super().__init__("assets/images/magma.png", 20, 20, 4)
+
+
 
 
 class PositiveParticle(Particle):
     instances = []
 
     def __init__(self):
-        super().__init__("assets/blue_energy2.png", 20, 20, 0)
+        super().__init__("assets/images/blue_energy.png", 20, 20, 0)
         PositiveParticle.instances.append(self)
         self.is_neutral = False
 
@@ -91,7 +69,7 @@ class NegativeParticle(Particle):
     instances = []
 
     def __init__(self):
-        super().__init__("assets/red_energy2.png", 20, 20, 0)
+        super().__init__("assets/images/red_energy.png", 20, 20, 0)
         NegativeParticle.instances.append(self)
         self.is_neutral = False
 
@@ -103,7 +81,7 @@ class NegativeParticle(Particle):
 
 class FireParticle(Particle):
     def __init__(self, initial_x, initial_y):
-        super().__init__("assets/purple_energy.png", 20, 20, 0)  # Assuming 'fire_particle.png' is your fire image
+        super().__init__("assets/images/purple_energy.png", 20, 20, 0)  # Assuming 'fire_particle.png' is your fire image
         self.center_x = initial_x
         self.center_y = initial_y
         dx = SCREEN_WIDTH / 2 - self.center_x
@@ -117,7 +95,7 @@ class FireParticle(Particle):
 
 class RadioactiveParticle(Particle):
     def __init__(self):
-        super().__init__("assets/green_energy.png", 20, 20, 0)
+        super().__init__("assets/images/green_triangle.png", 20, 20, 0)
         self.speed = 0.2
 
     def update(self):
@@ -129,7 +107,9 @@ class RadioactiveParticle(Particle):
 
 GRAVITATIONAL_MAPPING = {
     1: LightGreyParticle,
-    2: DarkGreyParticle,
-    3: BrownParticle,
+    # 2: DarkGreyParticle,
+    2: BrownParticle,
+    3: MeltingParticle,
+    4: MagmaParticle,
     # ... continue mapping for other particle types
 }

@@ -2,12 +2,17 @@
 import math
 import arcade
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from particles import LightGreyParticle, DarkGreyParticle, PositiveParticle, NegativeParticle, FireParticle, \
+from particles import LightGreyParticle, BrownParticle, PositiveParticle, NegativeParticle, FireParticle, \
     RadioactiveParticle, GRAVITATIONAL_MAPPING
 import random
 import sun
 
-# from square_building import handle_gravitational_increase
+# Sound effects
+attraction_sound = arcade.load_sound("assets/sounds/attraction_sound.wav")
+repulsion_sound = arcade.load_sound("assets/sounds/repulsion_sound.wav")
+explosion_sound = arcade.load_sound("assets/sounds/explosion_sound.wav")
+alignment_sound = arcade.load_sound("assets/sounds/alignment_sound.wav")
+radioactive_emission_sound = arcade.load_sound("assets/sounds/radioactive_emission_sound.wav")
 
 # Two sets to track moving and stationary particles
 moving_particles = set()
@@ -54,9 +59,11 @@ def detect_collision(particles, delta_time, sun):
 
 def handle_collision(moving_particle, stationary_particle, particles):
     if isinstance(stationary_particle, RadioactiveParticle) or isinstance(moving_particle, RadioactiveParticle):
+        arcade.play_sound(explosion_sound)
         safe_remove_particles(moving_particle, stationary_particle, particles)
 
     else:
+        arcade.play_sound(alignment_sound)
         # Set the speed and angle of both particles
         moving_particle.angle = 0
         stationary_particle.angle = 0
@@ -135,6 +142,7 @@ def check_proximity(particle1, particle2):
 
 
 def handle_repulsion(particle1, particle2, particles, sun):
+    arcade.play_sound(repulsion_sound)
     # Calculate the midpoint between the two colliding particles
     mid_x = (particle1.center_x + particle2.center_x) / 2
     mid_y = (particle1.center_y + particle2.center_y) / 2
@@ -156,6 +164,7 @@ def handle_repulsion(particle1, particle2, particles, sun):
 
 
 def handle_attraction(particle1, particle2, particles):
+    arcade.play_sound(attraction_sound)
     # Create two neutral light grey particles
     neutral_particle1 = LightGreyParticle()
     neutral_particle2 = LightGreyParticle()
@@ -186,6 +195,7 @@ def handle_fire_particle_collision(particle, particles, sun):
 
 
 def emit_radioactive_particles(particle, particles):
+    arcade.play_sound(radioactive_emission_sound)
     base_angle_away_from_sun = math.degrees(
         math.atan2(SCREEN_HEIGHT / 2 - particle.center_y, SCREEN_WIDTH / 2 - particle.center_x))
     for i in range(2):

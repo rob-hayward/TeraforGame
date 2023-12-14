@@ -3,7 +3,7 @@ from collections import defaultdict
 import math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 # from collision_handling import stationary_particles
-from particles import GRAVITATIONAL_MAPPING, LightGreyParticle, DarkGreyParticle, BrownParticle, PositiveParticle, \
+from particles import GRAVITATIONAL_MAPPING, LightGreyParticle, BrownParticle, PositiveParticle, \
     NegativeParticle, RadioactiveParticle, FireParticle
 
 
@@ -42,37 +42,19 @@ def is_3x3_square(coord, coordinates, margin=1):
 def handle_gravitational_collapse(stationary_particles, particles, particle_type, coord):
     screen_center_x = SCREEN_WIDTH / 2
     screen_center_y = SCREEN_HEIGHT / 2
-    x, y = coord
 
-    # Calculate the center coordinates of the 3x3 square
-    center_x = x + 20  # 20 is the width of each particle
-    center_y = y + 20  # 20 is the height of each particle
+    # Find all particles within the 3x3 square
+    square_particles = [particle for particle in stationary_particles
+                        if abs(particle.center_x - coord[0]) <= 40 and
+                        abs(particle.center_y - coord[1]) <= 40]
+    print(f"Found {len(square_particles)} particles in a 3x3 square")
+    # Sort these particles based on their distance to the screen center
+    square_particles.sort(key=lambda p: math.sqrt((p.center_x - screen_center_x) ** 2 + (p.center_y - screen_center_y) ** 2))
 
-    # Find the central particle and the particle closest to the screen center
-    central_particle = None
-    closest_particle = None
-    min_distance_to_center = float('inf')
-
-    for particle in stationary_particles:
-        if particle.center_x == center_x and particle.center_y == center_y:
-            central_particle = particle
-
-        # Calculate distance to the screen center
-        distance_to_center = math.sqrt(
-            (particle.center_x - screen_center_x) ** 2 + (particle.center_y - screen_center_y) ** 2)
-        if distance_to_center < min_distance_to_center:
-            min_distance_to_center = distance_to_center
-            closest_particle = particle
-
-    if central_particle is None or closest_particle is None:
-        return  # Essential particles not found
-
-    # Replace the central particle
-    replace_particle(central_particle, stationary_particles, particles)
-
-    # Replace the closest particle if it's different from the central particle
-    if closest_particle is not central_particle:
-        replace_particle(closest_particle, stationary_particles, particles)
+    # Replace the 4 closest particles
+    for particle in square_particles[:4]:
+        print(f"Replacing particle {particle}")
+        replace_particle(particle, stationary_particles, particles)
 
 
 def replace_particle(old_particle, stationary_particles, particles):

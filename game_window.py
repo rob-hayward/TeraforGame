@@ -1,4 +1,6 @@
 # game_window.py
+import time
+
 import arcade
 import math
 import random
@@ -24,14 +26,55 @@ class MyGame(arcade.Window):
         self.background = None
         self.scroll_text_y = SCREEN_HEIGHT * 2.8
         self.load_scrolling_text()
+        self.load_credits_text()
+        self.game_over_scroll_y = SCREEN_HEIGHT * 1.5
+        self.game_over_scroll_speed = 0.5
         self.player_name = ""
         self.is_high_score = False
         self.scoring = Scoring("high_score.txt")
         self.current_score = 0
+        self.background_noise = arcade.load_sound("assets/sounds/background_noise.wav")
+        self.background_noise_playing = False
+        self.background_noise_player = None  # To store the media player for background noise
+        self.background_noise_volume = 0.2
+        # Load music tracks
+        self.track1 = arcade.load_sound("assets/sounds/Billy's Sacrifice.wav")
+        self.track2 = arcade.load_sound("assets/sounds/Checking Manifest.wav")
+
+        # Track duration in seconds (you need to set these manually)
+        self.track1_duration = 234  # Example duration in seconds
+        self.track2_duration = 240  # Example duration in seconds
+
+        # Track which song is currently playing and when it started
+        self.current_track = None
+        self.track_start_time = None
+
+    def play_next_track(self):
+        """
+        Play the next track in the playlist.
+        """
+        now = time.time()
+        if self.current_track == 1 and (now - self.track_start_time) > self.track1_duration:
+            arcade.play_sound(self.track2, looping=False)
+            self.current_track = 2
+            self.track_start_time = now
+        elif self.current_track == 2 and (now - self.track_start_time) > self.track2_duration:
+            arcade.play_sound(self.track1, looping=False)
+            self.current_track = 1
+            self.track_start_time = now
+        elif self.current_track is None:
+            # If no track has been played yet
+            arcade.play_sound(self.track1, looping=False)
+            self.current_track = 1
+            self.track_start_time = now
 
     def load_scrolling_text(self):
         with open("scrolling_text.txt", "r") as file:
             self.scroll_text = file.read()
+
+    def load_credits_text(self):
+        with open("credits.txt", "r") as file:
+            self.credits_text = file.read()
 
     def draw_high_scores(self, start_y):
         top_scores = self.scoring.get_top_high_scores()
@@ -47,20 +90,18 @@ class MyGame(arcade.Window):
         if self.scoring.is_high_score(self.current_score):
             self.is_high_score = True
             self.game_state = "GAME_OVER"
-            print(f"High Score Achieved: {self.current_score}")
+            self.game_over_scroll_y = SCREEN_HEIGHT * 1.5  # Reset scroll position
         else:
             self.game_state = "WELCOME"  # Or another state as needed
-        print(f"Current Score: {self.current_score}")
 
-    # move to scoring.py
     def save_high_scores(self, high_scores):
         with open("high_score.txt", "w") as file:
             for name, score in high_scores:
                 file.write(f"{name},{score}\n")
 
     def setup(self):
-        self.background = arcade.load_texture("assets/galaxy_background.png")
-        self.sun = Sun("assets/SunSprite.png", scale=1.05,
+        self.background = arcade.load_texture("assets/images/galaxy_background.png")
+        self.sun = Sun("assets/images/SunSprite.png", scale=1.05,
                        orbit_radius=ORBIT_RADIUS,
                        orbit_speed=ORBIT_SPEED)
         self.light_grey_particle = LightGreyParticle()
@@ -77,10 +118,21 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
         if self.game_state == "WELCOME":
+            if not self.background_noise_playing:
+                self.background_noise_player = arcade.play_sound(self.background_noise, looping=True,
+                                                                 volume=self.background_noise_volume)
+                self.background_noise_playing = True
             self.draw_welcome_screen()
         elif self.game_state == "GAME":
+            if self.background_noise_playing:
+                arcade.stop_sound(self.background_noise_player)
+                self.background_noise_playing = False
             self.draw_game_screen()
         elif self.game_state == "GAME_OVER":
+            if not self.background_noise_playing:
+                self.background_noise_player = arcade.play_sound(self.background_noise, looping=True,
+                                                                 volume=self.background_noise_volume)
+                self.background_noise_playing = True
             self.draw_game_over_screen()
 
     def draw_welcome_screen(self):
@@ -119,51 +171,79 @@ class MyGame(arcade.Window):
             high_score_name, high_score = ("", 0)
 
         # Display the high score in the top left corner
-        high_score_text = f"High Score {high_score_name} - {high_score}"
+        high_score_text = f"High Score: {high_score_name} - {high_score}"
         arcade.draw_text(high_score_text, 10, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
         # Update and display the current score in the top right corner
         self.current_score = sum(particle.gravitational_value for particle in stationary_particles)
         current_score_text = f"Current Score {self.current_score}"
-        arcade.draw_text(current_score_text, SCREEN_WIDTH - 400, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14,
+        arcade.draw_text(current_score_text, SCREEN_WIDTH - 250, SCREEN_HEIGHT - 30, arcade.color.WHITE, 14,
                          font_name="Kenney Blocks")
 
         arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
     def draw_game_over_screen(self):
-        # Draw the background
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
+        self.draw_sun_sprite()  # Draw the sun sprite
+        self.draw_scrolling_game_over_text()
+        self.draw_exit_button()  # Draw the "Exit" button
 
-        # Draw the sun sprite in the center
+    def draw_sun_sprite(self):
         sun_center_x = SCREEN_WIDTH / 2
         sun_center_y = SCREEN_HEIGHT / 2
-        sun_sprite = arcade.Sprite("assets/SunSprite.png", center_x=sun_center_x, center_y=sun_center_y)
+        sun_sprite = arcade.Sprite("assets/images/SunSprite.png", center_x=sun_center_x, center_y=sun_center_y)
         sun_sprite.draw()
 
-        # Draw the high scores on top of the sun sprite
-        start_y_for_high_scores = sun_center_y + 80  # Adjust as needed
-        self.draw_high_scores(start_y_for_high_scores)
-
-        # Draw "Press ESC to exit" text
-        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2, 800, arcade.color.WHITE, 90, anchor_x="center",
-                         font_name="Kenney Blocks")
-
-        # Draw "Exit" button
+    def draw_exit_button(self):
         arcade.draw_text("Exit", 10, 10, arcade.color.WHITE, 14, font_name="Kenney Blocks")
 
+
+    def draw_scrolling_game_over_text(self):
+        start_y = self.game_over_scroll_y
+        font_size = 40  # Adjust font size as needed
+        font_name = "Kenney Mini Square"  # Set the desired font
+
+        # Draw credits
+        for line in self.credits_text.split('\n'):
+            arcade.draw_text(line, SCREEN_WIDTH / 2, start_y + 1300, arcade.color.WHITE, font_size, anchor_x="center",
+                             font_name=font_name)
+            start_y -= 50  # Adjust spacing between lines of credits
+
+        # Draw "Title" text
+        arcade.draw_text("TERAFOR", SCREEN_WIDTH / 2, start_y + 900, arcade.color.WHITE, 100, anchor_x="center",
+                         font_name="Kenney Blocks")
+        start_y -= 150  # Adjust the spacing for the next section
+
+        # Draw high scores
+        top_scores = self.scoring.get_top_high_scores()
+        for rank, (name, score) in enumerate(top_scores, start=1):
+            text = f"{rank}. {name}: {score}"
+            arcade.draw_text(text, SCREEN_WIDTH / 2, start_y + 500, arcade.color.WHITE, font_size, anchor_x="center",
+                             font_name=font_name)
+            start_y -= 70  # Adjust the spacing between lines
+
+        # Draw input box if high score achieved
         if self.is_high_score:
-            # Draw text input box higher up the page
-            text_input_y_position = self.height // 2 + 200  # Adjust Y-coordinate to move higher
-            arcade.draw_text("Congratulations! Enter Name:", self.width // 2, text_input_y_position,
-                             arcade.color.WHITE, 40, font_name="Kenney Blocks", anchor_x="center")
-            arcade.draw_text(self.player_name, self.width // 2, text_input_y_position - 60,
-                             arcade.color.WHITE, 40, font_name="Kenney Mini Square", anchor_x="center")
+            arcade.draw_text(self.player_name, SCREEN_WIDTH / 2, start_y + 400,
+                             arcade.color.WHITE, font_size, anchor_x="center", font_name=font_name)
+            arcade.draw_text(f"Congratulations! You scored: {self.current_score}! Enter Name:", SCREEN_WIDTH / 2, start_y + 300,
+                             arcade.color.WHITE, font_size, anchor_x="center", font_name=font_name)
+            start_y -= 100  # Adjust spacing for high scores
+
+        # Draw "GAME OVER" text
+        arcade.draw_text("GAME OVER", SCREEN_WIDTH / 2, start_y + 100, arcade.color.WHITE, 100, anchor_x="center",
+                         font_name="Kenney Blocks")
+        start_y -= 150  # Adjust the spacing for the next section
+
+        # Update the y-coordinate for scrolling
+        self.game_over_scroll_y -= self.game_over_scroll_speed
 
     def update(self, delta_time):
         if self.game_state == "WELCOME":
             self.update_welcome_screen(delta_time)
         elif self.game_state == "GAME":
             self.update_game_screen(delta_time)
+            self.play_next_track()
 
     def update_welcome_screen(self, delta_time):
         self.scroll_text_y -= 0.5  # Scroll the text upwards
