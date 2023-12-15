@@ -11,6 +11,7 @@ from sound_track import SoundTrack
 from welcome import WelcomeScreen
 from game_over import GameOverScreen
 
+
 class MyGame(arcade.Window):
     def __init__(self, title):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, title, fullscreen=True)

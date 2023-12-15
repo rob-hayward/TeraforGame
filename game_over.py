@@ -2,6 +2,10 @@
 import arcade
 
 
+from constants import SCREEN_WIDTH
+from scoring import Scoring
+
+
 class GameOverScreen:
     def __init__(self, game_window):
         self.game_window = game_window
@@ -9,6 +13,7 @@ class GameOverScreen:
         self.game_over_scroll_speed = 0.5
         self.player_name = ""
         self.is_high_score = False
+        self.scoring = Scoring("high_score.txt")
         self.load_credits_text()
 
     def load_credits_text(self):
@@ -33,28 +38,32 @@ class GameOverScreen:
 
     def draw_scrolling_text(self):
         start_y = self.game_over_scroll_y
-        # font_size = 40
-        # font_name = "Kenney Mini Square"
 
         # Draw credits
         for line in self.credits_text.split('\n'):
-            arcade.draw_text(line, self.game_window.width / 2, start_y + 900, arcade.color.WHITE, font_size=40, anchor_x="center",
+            arcade.draw_text(line, self.game_window.width / 2, start_y + 1200, arcade.color.WHITE, font_size=40, anchor_x="center",
                              font_name="Kenney Mini Square")
+            start_y -= 40 # Move down for the next line
+
+        # Draw high scores using the Scoring object
+        top_scores = self.scoring.get_top_high_scores()
+        for i, (name, score) in enumerate(top_scores):
+            arcade.draw_text(f"{i + 1}. {name} - {score}", self.game_window.width / 2, start_y + 1000 - i * 60,
+                             arcade.color.WHITE,
+                             font_size=40, anchor_x="center", font_name="Kenney Mini Square")
 
         # High scores and input box if high score achieved
         if self.is_high_score:
-            arcade.draw_text(self.player_name, self.game_window.width / 2, start_y + 400,
+            arcade.draw_text(self.player_name, self.game_window.width / 2, start_y + 150,
                              arcade.color.WHITE, font_size=40, anchor_x="center", font_name="Kenney Mini Square")
             arcade.draw_text(f"Congratulations! \n You scored: {self.game_window.current_score} \n Enter Name:",
-                             self.game_window.width / 2, start_y + 300,
+                             self.game_window.width / 2, start_y + 100,
                              arcade.color.WHITE, font_size=40, anchor_x="center", font_name="Kenney Mini Square")
 
         # Draw "GAME OVER" text
-        arcade.draw_text("GAME OVER", self.game_window.width / 2, start_y, arcade.color.WHITE, 100,
+        arcade.draw_text("GAME OVER", self.game_window.width / 2, start_y -100, arcade.color.WHITE, 100,
                          anchor_x="center",
                          font_name="Kenney Blocks")
-
-        # start_y -= 150
 
     def update(self, delta_time):
         # Update the y-coordinate for scrolling
