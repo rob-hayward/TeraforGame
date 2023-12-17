@@ -34,12 +34,25 @@ class MyGame(arcade.Window):
     def setup(self):
         self.sun = Sun("assets/images/SunSprite.png", scale=1.05,
                        orbit_radius=ORBIT_RADIUS, orbit_speed=ORBIT_SPEED)
+
+        # Commenting out the single light grey particle
         self.light_grey_particle = LightGreyParticle()
         self.light_grey_particle.center_x = SCREEN_WIDTH / 2
         self.light_grey_particle.center_y = SCREEN_HEIGHT / 2
         self.light_grey_particle.speed = 0
         self.particles.append(self.light_grey_particle)
         stationary_particles.add(self.light_grey_particle)
+
+        # # Adding a 3x3 square of Light Grey Particles
+        # start_x, start_y = SCREEN_WIDTH / 2 - 20, SCREEN_HEIGHT / 2 - 20  # Starting coordinates for the 3x3 square
+        # for i in range(3):  # Rows
+        #     for j in range(3):  # Columns
+        #         particle = LightGreyParticle()
+        #         particle.center_x = start_x + i * 20  # Adjust position for each particle
+        #         particle.center_y = start_y + j * 20
+        #         particle.speed = 0
+        #         self.particles.append(particle)
+        #         stationary_particles.add(particle)
 
     def on_draw(self):
         arcade.start_render()
@@ -80,7 +93,8 @@ class MyGame(arcade.Window):
     def update_game_screen(self, delta_time):
         if not self.paused:
             self.sun.update()
-            self.light_grey_particle.update()
+            # Update all particles instead of just self.light_grey_particle
+
             self.particle_timer += delta_time
             if self.particle_timer >= self.next_particle_time:
                 self.particle_timer = 0
@@ -89,10 +103,12 @@ class MyGame(arcade.Window):
                 self.particles.append(new_particle)
             detect_collision(self.particles, delta_time, self.sun)
             groups = group_particles_by_type(stationary_particles)
-            find_3x3_squares(groups, stationary_particles, self.particles)
+            find_3x3_squares(groups, stationary_particles, moving_particles, self.particles)
             for particle in stationary_particles:
                 if arcade.check_for_collision(particle, self.sun):
                     self.game_over()
+            for particle in self.particles:
+                particle.update()
 
     def game_over(self):
         self.current_score = sum(particle.gravitational_value for particle in stationary_particles)

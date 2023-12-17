@@ -10,7 +10,7 @@ class Particle(arcade.Sprite):
         self.width = width
         self.height = height
         self.gravitational_value = gravitational_value
-        self.speed = 1
+        self.speed = 0.5
         self.angle = 0
         self.is_neutral = True  # Default value for neutral particles
 
@@ -31,24 +31,19 @@ class LightGreyParticle(Particle):
         super().__init__("assets/images/light_grey_rock.png", 20, 20, 1)
 
 
-# class DarkGreyParticle(Particle):
-#     def __init__(self):
-#         super().__init__("assets/images/dark_grey_rock.png", 20, 20, 2)
-
-
 class BrownParticle(Particle):
     def __init__(self):
         super().__init__("assets/images/brown_rock.png", 20, 20, 2)
+
 
 class MeltingParticle(Particle):
     def __init__(self):
         super().__init__("assets/images/melting_rock.png", 20, 20, 3)
 
+
 class MagmaParticle(Particle):
     def __init__(self):
         super().__init__("assets/images/magma.png", 20, 20, 4)
-
-
 
 
 class PositiveParticle(Particle):
@@ -107,7 +102,6 @@ class RadioactiveParticle(Particle):
 
 GRAVITATIONAL_MAPPING = {
     1: LightGreyParticle,
-    # 2: DarkGreyParticle,
     2: BrownParticle,
     3: MeltingParticle,
     4: MagmaParticle,

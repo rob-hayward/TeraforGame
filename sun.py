@@ -44,7 +44,7 @@ class Sun(arcade.Sprite):
         particle.center_y = self.center_y - ((self.height / 2) + offset) * math.sin(self.angle)
         particle.angle = math.degrees(math.atan2(SCREEN_HEIGHT / 2 - particle.center_y,
                                                  SCREEN_WIDTH / 2 - particle.center_x))
-        particle.speed = 1
+        particle.speed = 0.5
         moving_particles.add(particle)
         return particle
 

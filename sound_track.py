@@ -14,6 +14,8 @@ class SoundTrack:
         self.track2 = arcade.load_sound("assets/sounds/Checking Manifest.wav")
         self.track3 = arcade.load_sound("assets/sounds/Crash Landing.wav")
         self.track4 = arcade.load_sound("assets/sounds/Automatav2.wav")
+        self.track5 = arcade.load_sound("assets/sounds/City Stomper.wav")
+        self.track6 = arcade.load_sound("assets/sounds/Parabola.wav")
         # Add more tracks as needed
 
         # Track duration in seconds
@@ -22,6 +24,8 @@ class SoundTrack:
             self.track2: 240,
             self.track3: 217,
             self.track4: 246,
+            self.track5: 195,
+            self.track6: 250,
             # Add durations for more tracks as needed
         }
 
@@ -38,11 +42,22 @@ class SoundTrack:
             self.current_track = self.track2
             self.track_start_time = current_time
             arcade.play_sound(self.track2, looping=False)
-        # ... Repeat for other tracks ...
-        elif self.current_track == self.track4 and (current_time - self.track_start_time) > self.track_durations[self.track4]:
-            self.current_track = self.track1
+        elif self.current_track == self.track2 and (current_time - self.track_start_time) > self.track_durations[self.track2]:
+            self.current_track = self.track3
             self.track_start_time = current_time
             arcade.play_sound(self.track1, looping=False)
+        elif self.current_track == self.track3 and (current_time - self.track_start_time) > self.track_durations[self.track3]:
+            self.current_track = self.track4
+            self.track_start_time = current_time
+            arcade.play_sound(self.track4, looping=False)
+        elif self.current_track == self.track4 and (current_time - self.track_start_time) > self.track_durations[self.track4]:
+            self.current_track = self.track5
+            self.track_start_time = current_time
+            arcade.play_sound(self.track5, looping=False)
+        elif self.current_track == self.track5 and (current_time - self.track_start_time) > self.track_durations[self.track5]:
+            self.current_track = self.track6
+            self.track_start_time = current_time
+            arcade.play_sound(self.track6, looping=False)
 
     def play_background_noise(self):
         if not self.background_noise_playing:

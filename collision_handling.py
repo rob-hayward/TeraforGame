@@ -124,11 +124,6 @@ def check_adjacent_particles(particles, sun):
                         isinstance(particle1, NegativeParticle) and isinstance(particle2, PositiveParticle):
                     handle_attraction(particle1, particle2, particles)
 
-                # # look for particle with adjacent heavier particle
-                # if particle1.gravitational_value != particle2.gravitational_value and (
-                #         particle1.gravitational_value and particle2.gravitational_value > 0):
-                #     check_multiple_adjacent(particle1, particle2, particles, sun)
-
 
 def check_proximity(particle1, particle2):
     # Calculate the distance between two particles
