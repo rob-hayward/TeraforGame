@@ -43,7 +43,7 @@ class MyGame(arcade.Window):
         self.particles.append(self.light_grey_particle)
         stationary_particles.add(self.light_grey_particle)
 
-        # # Adding a 3x3 square of Light Grey Particles
+        # # Adding a 3x3 square of Light Grey Particles for testing purposes
         # start_x, start_y = SCREEN_WIDTH / 2 - 20, SCREEN_HEIGHT / 2 - 20  # Starting coordinates for the 3x3 square
         # for i in range(3):  # Rows
         #     for j in range(3):  # Columns

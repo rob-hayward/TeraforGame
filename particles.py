@@ -46,6 +46,11 @@ class MagmaParticle(Particle):
         super().__init__("assets/images/magma.png", 20, 20, 4)
 
 
+class WhiteParticle(Particle):
+    def __init__(self):
+        super().__init__("assets/images/white_particle.png", 20, 20, 5)
+
+
 class PositiveParticle(Particle):
     instances = []
 
@@ -105,5 +110,6 @@ GRAVITATIONAL_MAPPING = {
     2: BrownParticle,
     3: MeltingParticle,
     4: MagmaParticle,
+    5: WhiteParticle,
     # ... continue mapping for other particle types
 }
