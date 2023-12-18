@@ -1,8 +1,5 @@
 # game_over.py
 import arcade
-
-
-from constants import SCREEN_WIDTH
 from scoring import Scoring
 
 

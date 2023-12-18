@@ -1,5 +1,4 @@
 # game_window.py
-import arcade
 import random
 import time
 from square_building import group_particles_by_type, find_3x3_squares
@@ -42,17 +41,6 @@ class MyGame(arcade.Window):
         self.light_grey_particle.speed = 0
         self.particles.append(self.light_grey_particle)
         stationary_particles.add(self.light_grey_particle)
-
-        # # Adding a 3x3 square of Light Grey Particles for testing purposes
-        # start_x, start_y = SCREEN_WIDTH / 2 - 20, SCREEN_HEIGHT / 2 - 20  # Starting coordinates for the 3x3 square
-        # for i in range(3):  # Rows
-        #     for j in range(3):  # Columns
-        #         particle = LightGreyParticle()
-        #         particle.center_x = start_x + i * 20  # Adjust position for each particle
-        #         particle.center_y = start_y + j * 20
-        #         particle.speed = 0
-        #         self.particles.append(particle)
-        #         stationary_particles.add(particle)
 
     def on_draw(self):
         arcade.start_render()

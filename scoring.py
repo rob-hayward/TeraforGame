@@ -1,3 +1,4 @@
+# scoring.py
 class Scoring:
     def __init__(self, high_score_file):
         self.high_score_file = high_score_file

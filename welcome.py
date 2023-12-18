@@ -1,6 +1,7 @@
 # welcome.py
 import arcade
 
+
 class WelcomeScreen:
     def __init__(self, game_window):
         self.game_window = game_window

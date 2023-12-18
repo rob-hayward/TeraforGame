@@ -1,5 +1,4 @@
-# constants.py contains the constants used in the game.
-
+# constants.py
 import arcade
 
 # Constants for full screen

@@ -1,5 +1,4 @@
-# particles.py contains the Particle class and its subclasses.
-import arcade
+# particles.py
 import math
 from constants import *
 
@@ -81,7 +80,7 @@ class NegativeParticle(Particle):
 
 class FireParticle(Particle):
     def __init__(self, initial_x, initial_y):
-        super().__init__("assets/images/purple_energy.png", 20, 20, 0)  # Assuming 'fire_particle.png' is your fire image
+        super().__init__("assets/images/purple_energy.png", 20, 20, 0)
         self.center_x = initial_x
         self.center_y = initial_y
         dx = SCREEN_WIDTH / 2 - self.center_x
@@ -90,7 +89,7 @@ class FireParticle(Particle):
         self.speed = 0.5
 
     def update(self):
-        super().update()  # This calls the update method from Particle class
+        super().update()
 
 
 class RadioactiveParticle(Particle):

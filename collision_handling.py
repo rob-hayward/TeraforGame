@@ -2,8 +2,7 @@
 import math
 import arcade
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from particles import LightGreyParticle, BrownParticle, PositiveParticle, NegativeParticle, FireParticle, \
-    RadioactiveParticle, GRAVITATIONAL_MAPPING
+from particles import LightGreyParticle, PositiveParticle, NegativeParticle, FireParticle, RadioactiveParticle
 import random
 import sun
 

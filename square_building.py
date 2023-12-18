@@ -2,7 +2,7 @@
 from collections import defaultdict
 import math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from particles import GRAVITATIONAL_MAPPING, LightGreyParticle, BrownParticle, PositiveParticle, NegativeParticle, RadioactiveParticle, FireParticle
+from particles import GRAVITATIONAL_MAPPING, PositiveParticle, NegativeParticle
 
 
 def group_particles_by_type(stationary_particles):
@@ -57,7 +57,7 @@ def replace_particles(particles_to_replace, stationary_particles, moving_particl
             new_particle = NewParticleClass()
             new_particle.center_x, new_particle.center_y = old_particle.center_x, old_particle.center_y
             new_particle.speed = 0
-            safe_remove_particle(old_particle, stationary_particles, moving_particles, particles)  # Include moving_particles
+            safe_remove_particle(old_particle, stationary_particles, moving_particles, particles)
             stationary_particles.add(new_particle)
             particles.append(new_particle)
             replaced_particles.append(new_particle)

@@ -1,11 +1,7 @@
 # sun.py
-import arcade
-import math
 import random
 from collision_handling import moving_particles
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, SUN_SIZE, ORBIT_RADIUS, ORBIT_SPEED
-from particles import LightGreyParticle, PositiveParticle, NegativeParticle, RadioactiveParticle
-
+from particles import LightGreyParticle, PositiveParticle, NegativeParticle
 import arcade
 import math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, ORBIT_RADIUS, ORBIT_SPEED

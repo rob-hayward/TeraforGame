@@ -16,6 +16,8 @@ class SoundTrack:
         self.track4 = arcade.load_sound("assets/sounds/Automatav2.wav")
         self.track5 = arcade.load_sound("assets/sounds/City Stomper.wav")
         self.track6 = arcade.load_sound("assets/sounds/Parabola.wav")
+        self.track7 = arcade.load_sound("assets/sounds/Smooth Sailing.wav")
+        self.track8 = arcade.load_sound("assets/sounds/Race to Mars.wav")
         # Add more tracks as needed
 
         # Track duration in seconds
@@ -26,6 +28,8 @@ class SoundTrack:
             self.track4: 246,
             self.track5: 195,
             self.track6: 250,
+            self.track7: 205,
+            self.track8: 247,
             # Add durations for more tracks as needed
         }
 
@@ -45,7 +49,7 @@ class SoundTrack:
         elif self.current_track == self.track2 and (current_time - self.track_start_time) > self.track_durations[self.track2]:
             self.current_track = self.track3
             self.track_start_time = current_time
-            arcade.play_sound(self.track1, looping=False)
+            arcade.play_sound(self.track3, looping=False)
         elif self.current_track == self.track3 and (current_time - self.track_start_time) > self.track_durations[self.track3]:
             self.current_track = self.track4
             self.track_start_time = current_time
@@ -58,6 +62,14 @@ class SoundTrack:
             self.current_track = self.track6
             self.track_start_time = current_time
             arcade.play_sound(self.track6, looping=False)
+        elif self.current_track == self.track6 and (current_time - self.track_start_time) > self.track_durations[self.track6]:
+            self.current_track = self.track7
+            self.track_start_time = current_time
+            arcade.play_sound(self.track7, looping=False)
+        elif self.current_track == self.track7 and (current_time - self.track_start_time) > self.track_durations[self.track7]:
+            self.current_track = self.track8
+            self.track_start_time = current_time
+            arcade.play_sound(self.track8, looping=False)
 
     def play_background_noise(self):
         if not self.background_noise_playing:
